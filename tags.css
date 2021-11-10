@@ -1,0 +1,15 @@
+.grid-container {
+    display: grid;
+    grid-template-columns: 80px 300px;
+  }
+  
+  .grid-item {
+    text-align: center;
+    cursor: pointer;
+  }
+  
+  .tagged {
+    background-color: lightblue;
+    cursor: pointer;
+  }
+  

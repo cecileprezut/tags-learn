@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="tags.css">
+</head>
+
+<body>
+    <div class="grid-container">
+        <div class="grid-item">
+            <button onclick="switchBetweenTextAreaAndTags()">
+              OK
+            </button>
+        </div>
+        <div class="grid-item">
+            <textarea id="description" rows="4" cols="50">coucou comment allez vous patate patate ? La sciatique de la sciatique</textarea>
+            <p onmouseup="getSelectedText(termList)" id="textTags"></p>
+        </div>
+    </div>
+    <script src="./functions.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src=" ./tags.js "></script>
+</body>
+
+</html>
