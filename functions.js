@@ -10,6 +10,10 @@ const clinicalDescription = document.getElementById("description").value;
 let textToDisplay = "";
 var termsIndex = []
 
+function getWordIndex(text,word){
+    return wordIndex = text.indexOf(word)
+}
+
 function switchBetweenTextAreaAndTags() {
     console.log("Voici la liste au départ: ", selectedTerms);
 
@@ -18,14 +22,9 @@ function switchBetweenTextAreaAndTags() {
         // texte de la description clinique
         termsIndex = [...selectedTerms]
 
-        function getWordIndex(text,word){
-            return wordIndex = text.indexOf(word)
-        }
-        
         //prendre l'index des termes dans le texte, et créer un tableau avec termes/index par ordre d'apparition
         function getTermsIndexes(text, terms){
             wordIndexes = []
-            console.log(wordIndexes)
             for(let i = 0; i < terms.length; i++) {
                 let wordIndex = getWordIndex(text,terms[i])
                 let endIndex = wordIndex + terms[i].length-1
@@ -35,7 +34,6 @@ function switchBetweenTextAreaAndTags() {
         }
 
         getTermsIndexes(clinicalDescription, termsIndex)
-        console.log(wordIndexes)
 
         //début de phrase + 'coucou'
         textToDisplay = clinicalDescription.slice(0, wordIndexes[0].startIndex) + `<span class="tagged" onclick="deleteTheTag('${wordIndexes[0].text}')" id="${wordIndexes[0].text + wordIndexes[0].startIndex}">${wordIndexes[0].text}</span> `
@@ -65,45 +63,62 @@ function switchBetweenTextAreaAndTags() {
 
 // Fonction qui permet de supprimer le tag de la liste de termes 
 function deleteTheTag(selectedText) {
-    debugger
-    let selectedTermId = ''
-    //récupérer l'id du terme sélectionné pour supprimer un tag
-    const selectedTextString = selectedText.toString()
+
+    // classe les termes dans le tableau wordIndexes selon leur ordre d'apparition dans le texte
+    wordIndexes =_.sortBy(wordIndexes, ['startIndex','text']);
+
+    //le mot est déjà taggé à un autre endroit du texte
+    const selectedTextIndex = wordIndexes.findIndex((obj) => {
+        return obj.text == selectedText
+    })
+
+    // si on sélectionne un mot qui est déjà taggé ailleurs dans le texte, on ne fait rien
+    // trouver les occurrences du mot cliqué dans le texte
+    let index = 0
+    let termOccurrencesIndexes = []
+    let startIndex = 0
+    while((index = clinicalDescription.indexOf(selectedText, startIndex)) > -1){
+        termOccurrencesIndexes.push(index)
+        startIndex = index + selectedText.length
+    }
+    console.log( )
+    // si le terme cliqué n'est pas taggé, on ne fait rien
+
+    // si le terme est taggé, il a un id
+    const selectedTextStringForDeletion = selectedText.toString()
     for (let i = 0; i < wordIndexes.length; i++) {
-        let selectedTermWithoutSpaces = selectedTextString.replace(/\s+/g, '-')
-        if(selectedTextString.trim() == wordIndexes[i].text){
+        let selectedTermWithoutSpaces = selectedTextStringForDeletion.trim().replace(/\s+/g, '-')
+
+        if(selectedTextStringForDeletion.trim() == wordIndexes[i].text){
             selectedTermId = selectedTermWithoutSpaces + wordIndexes[i].startIndex
         }
     }
+
+    console.log(selectedTermId)
+
+    if(!document.getElementById(selectedTermId)){
+        return
+    }
+
     //remplacer le span par le terme
-    document.getElementById(selectedTermId).after(selectedText)
+    document.getElementById(selectedTermId).after(selectedText) 
     document.getElementById(selectedTermId).remove()
     textToDisplay = document.getElementById('textTags').innerHTML
     selectedTerms.splice(selectedTerms.indexOf(selectedTermId), 1);
-
-// cas de la désélection d'un multi-mots en cliquant sur un seul mot
-// récupérer l'index de début et de fin du mot cliqué
-let startIndex = clinicalDescription.indexOf(selectedText)
-let endIndex = clinicalDescription.indexOf(selectedText) + selectedText.length-1
-selectedTermIndexes = { startIndex: startIndex, endIndex: endIndex, text: selectedText}
-// on compare les startIndex et les endIndex du mot cliqué et des mots taggés.
-// Si le startIndex du mot cliqué est >= au startIndex du mot taggé et l'endIndex du mot cliqué est <= au startIndex du mot taggé, alors le mot cliqué est compris dans un mot taggé
-// NE FONCTIONNE PAS POUR L'INSTANT
-for(let i = 0; i < wordIndexes.length; i++) {
-    if(wordIndexes[i].startIndex <= selectedTermIndexes.startIndex 
-        && wordIndexes[i].endIndex >= selectedTermIndexes.endIndex){
-            console.log('match')
-        }
-    }
+    wordIndexes.splice(selectedTextIndex,1)
+    return selectedTerms
 }
 
 // Fonction qui permet d'ajouter le tag à la liste de termes 
 function addTheTag(expression) {
+    debugger
+    console.log(wordIndexes)
     if (!selectedTerms.includes(expression)) {
         let str = expression.trim()
-        let strWithoutSpaces = str.replace(/\s+/g, '-')
-        console.log(strWithoutSpaces)
         selectedTerms.push(str);
+        // utile pour la création de l'id de l'expression taggée
+        let strWithoutSpaces = str.replace(/\s+/g, '-')
+        
         const newStr = `<span class="tagged" onclick="deleteTheTag('${str}')" id="${strWithoutSpaces+clinicalDescription.indexOf(str)}">${str}</span>`
         textToDisplay = textToDisplay.replace(str, newStr)
         document.getElementById('textTags').innerHTML = textToDisplay
@@ -112,7 +127,7 @@ function addTheTag(expression) {
 }
 
 //Permet de récupérer les mots selectionnés pour les ajouter comme un seul terme à la liste de termes.
-function getSelectedText(termList) {
+function getSelectedText() {
     //Recupere la selection en cours
     var selectedText = window.getSelection();
     
@@ -152,6 +167,62 @@ function getSelectedText(termList) {
         //|vous patate|
         selectedText.modify("extend", direction[0], "word");
     }
+
+    // cas de la désélection d'un multi-mots en cliquant sur un seul mot
+    // récupérer l'index de début et de fin du mot cliqué
+    let startIndex = clinicalDescription.indexOf(selectedText)
+    let endIndex = clinicalDescription.indexOf(selectedText) + selectedText.toString().length-2
+    selectedTermIndexes = { startIndex: startIndex, endIndex: endIndex, text: selectedText}
+    
+
+    // on détagge un terme uniquement s'il est déjà taggé et qu'il a donc un id
+    let selectedTermId = ''
+    //récupérer l'id du terme sélectionné pour supprimer un tag
+    const selectedTextString = selectedText.toString()
+    for (let i = 0; i < wordIndexes.length; i++) {
+        let selectedTermWithoutSpaces = selectedTextString.trim().replace(/\s+/g, '-')
+
+        if(selectedTextString.trim() == wordIndexes[i].text){
+            selectedTermId = selectedTermWithoutSpaces + wordIndexes[i].startIndex
+        }
+    }
+
+    // si on sélectionne un seul mot à supprimer
+    if(document.getElementById(selectedTermId)){
+        for (let i = 0; i < wordIndexes.length; i++) {
+            let selectedTermWithoutSpaces = selectedTextString.replace(/\s+/g, '-')
+    
+            if(selectedTextString.trim() == wordIndexes[i].text){
+                selectedTermId = selectedTermWithoutSpaces + wordIndexes[i].startIndex
+            }
+        }
+
+        // on compare les startIndex et les endIndex du mot cliqué et des mots taggés.
+        // Si le startIndex du mot cliqué est >= au startIndex du mot taggé
+        // et si l'endIndex du mot cliqué est <= au startIndex du mot taggé,
+        // alors le mot cliqué est compris dans un mot taggé
+        for(let i = 0; i < wordIndexes.length; i++) {
+            if(selectedTermIndexes.startIndex >= wordIndexes[i].startIndex 
+                && selectedTermIndexes.endIndex <= wordIndexes[i].endIndex){
+                    selectedTerms = deleteTheTag(wordIndexes[i].text)
+                    return selectedTerms
+                }
+            }
+    }
+
+    // si on sélectionne un terme d'une expression multi-mots pour supprimer le tag 
+    // on compare les startIndex et les endIndex du mot cliqué et des mots taggés.
+    // Si le startIndex du mot cliqué est >= au startIndex du mot taggé
+    // et si l'endIndex du mot cliqué est <= au startIndex du mot taggé,
+    // alors le mot cliqué est compris dans un mot taggé
+    for(let i = 0; i < wordIndexes.length; i++) {
+        if(selectedTermIndexes.startIndex >= wordIndexes[i].startIndex 
+            && selectedTermIndexes.endIndex <= wordIndexes[i].endIndex){
+                selectedTerms = deleteTheTag(wordIndexes[i].text)
+                return selectedTerms
+            }
+        }
+
     if(selectedTerms.includes(selectedText.toString().trim())){
         return
     } else {
