@@ -1,0 +1,16 @@
+<div>
+  <div class="grid-container">
+    <div class="grid-item">
+        <button (click)="switchBetweenTextAreaAndTags()">
+          Switch
+        </button>
+    </div>
+    <div class="grid-item" *ngIf="!this.editTagMode">
+        <textarea id="description" rows="4" cols="50">{{text}}</textarea>
+        <p onmouseup="getSelectedText()" id="textTags"></p>
+    </div>
+
+    <div #editTag>
+
+    </div>
+</div>

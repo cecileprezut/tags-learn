@@ -7,6 +7,6 @@ var selectedTerms = ["coucou", "sciatique", "patate"]
 
 
 // Texte de la description clinique de la TE 
-window.addEventListener('DOMContentLoaded', (event) => {
+// window.addEventListener('DOMContentLoaded', (event) => {
 
-});
+// });
