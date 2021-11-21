@@ -1,3 +1,15 @@
 .selected {
-    background-color: goldenrod;
+    background-color: rgba(31, 71, 147, 0.4);
+    cursor: pointer;
+    padding: 2px 0 2px 2px;
+    border: rgba(31, 71, 147, 0.4) solid 0px;
+    border-radius: 4px;
+}
+.selected::after{
+    font-family: 'Material Icons';
+    content: "×";
+    margin: 0 2px 0 4px;
+    font-size: large;
+    font-weight: 900;
+    color: rgba(0, 0, 0, 0.5);
 }

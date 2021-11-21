@@ -32,18 +32,15 @@ export class AppComponent implements OnInit, AfterViewInit {
 			this.editTagElementRef?.nativeElement,
 			'mouseup',
 			(event) => {
-				//  const e = event as MouseEvent
-
 				const selection = window.getSelection();
-
 				const anchorNode = selection?.anchorNode as Node;
 				const focusNode = selection?.focusNode as Node;
 				const anchorOffset = selection?.anchorOffset as number;
-				const focusOffset = selection?.focusOffset as number;
 				const anchorSize = anchorNode.nodeValue?.length as number;
 				const focusSize = focusNode.nodeValue?.length as number;
-				console.log(selection?.anchorNode);
-				var range = new Range()
+				const range = new Range()
+
+				// étend une sélection à cheval sur plusieurs mots
 				if (selection) {
 					range.setStart(anchorNode, selection.anchorOffset);
 					range.setEnd(focusNode, selection.focusOffset);
@@ -63,6 +60,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 		let alreadyIncluded: string[] = [];
 		for (const t of this.textAsArray) {
 			let span: any | null = null;
+			// crée les tags pour les mots sélectionnés
 			if (this.selectedTerms.includes(t) && !alreadyIncluded.includes(t)) {
 				alreadyIncluded.push(t);
 				span = this.renderer.createElement('span');
@@ -71,6 +69,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 				span.setAttribute('class', 'selected');
 				this.renderer.appendChild(this.editTagElementRef?.nativeElement, span);
 			} else {
+				// crée les tags pour les mots non sélectionnés
 				span = this.renderer.createElement('span');
 				const text = this.renderer.createText(t);
 				this.renderer.appendChild(span, text);
